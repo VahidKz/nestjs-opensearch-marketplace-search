@@ -13,6 +13,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { environmentValidationSchema } from './config/environment.schema';
 import { HealthModule } from './health/health.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
     ]),
     DatabaseModule,
     CatalogModule,
+    SearchModule,
     HealthModule,
   ],
   providers: [
