@@ -78,6 +78,7 @@ export const productIndexDefinition = {
       currency: { type: 'keyword' },
       stockQuantity: { type: 'integer' },
       inStock: { type: 'boolean' },
+      isActive: { type: 'boolean' },
       freshnessGrade: { type: 'keyword' },
       tags: { type: 'keyword', normalizer: 'keyword_lowercase' },
       allergens: { type: 'keyword', normalizer: 'keyword_lowercase' },

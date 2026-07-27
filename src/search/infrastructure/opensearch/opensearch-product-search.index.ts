@@ -3,7 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { Client } from '@opensearch-project/opensearch';
 import { Product } from '../../../catalog/domain/product.entity';
 import { ProductSearchIndex } from '../../application/ports/product-search-index';
-import { toProductSearchDocument } from '../../domain/product-search-document';
+import {
+  ProductAutocompleteQuery,
+  ProductSearchQuery,
+  ProductSearchResults,
+  SearchFacetBucket,
+} from '../../application/product-search.query';
+import {
+  buildAutocompleteRequest,
+  buildProductSearchRequest,
+} from '../../application/opensearch-product-query.builder';
+import {
+  ProductSearchDocument,
+  toProductSearchDocument,
+} from '../../domain/product-search-document';
 import { OPENSEARCH_CLIENT } from './opensearch-client.provider';
 import {
   PRODUCT_INDEX_VERSION,
@@ -13,6 +26,18 @@ import {
 interface BulkResponseBody {
   errors: boolean;
   items: Array<Record<string, { error?: unknown }>>;
+}
+
+interface SearchResponseBody {
+  hits: {
+    total: number | { value: number };
+    hits: Array<{
+      _score?: number;
+      _source: ProductSearchDocument;
+      highlight?: Record<string, string[]>;
+    }>;
+  };
+  aggregations?: Record<string, { buckets?: Array<{ key: string; doc_count: number }> }>;
 }
 
 @Injectable()
@@ -68,6 +93,41 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
     );
   }
 
+  async searchProducts(query: ProductSearchQuery): Promise<ProductSearchResults> {
+    const response = await this.client.search({
+      index: this.aliasName,
+      body: buildProductSearchRequest(query) as any,
+    });
+    const payload = this.extractSearchPayload(response);
+
+    return {
+      total: this.extractTotal(payload.hits.total),
+      page: query.page,
+      limit: query.limit,
+      hits: payload.hits.hits.map((hit) => ({
+        score: hit._score ?? 0,
+        product: hit._source,
+        highlights: hit.highlight ?? {},
+      })),
+      facets: {
+        categories: this.toFacetBuckets(payload, 'categories'),
+        suppliers: this.toFacetBuckets(payload, 'suppliers'),
+        deliveryRegions: this.toFacetBuckets(payload, 'deliveryRegions'),
+      },
+    };
+  }
+
+  async autocomplete(query: ProductAutocompleteQuery): Promise<string[]> {
+    const response = await this.client.search({
+      index: this.aliasName,
+      body: buildAutocompleteRequest(query.q, query.limit) as any,
+    });
+    const payload = this.extractSearchPayload(response);
+    const suggestions = payload.hits.hits.map((hit) => hit._source.name);
+
+    return [...new Set(suggestions)].slice(0, query.limit);
+  }
+
   async ping(): Promise<boolean> {
     try {
       await this.client.ping();
@@ -112,5 +172,27 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
       errorType === 'resource_already_exists_exception' ||
       errorType === 'invalid_alias_name_exception'
     );
+  }
+
+  private extractSearchPayload(response: unknown): SearchResponseBody {
+    const payload = response as { body?: SearchResponseBody } & SearchResponseBody;
+
+    return payload.body ?? payload;
+  }
+
+  private extractTotal(total: number | { value: number }) {
+    return typeof total === 'number' ? total : total.value;
+  }
+
+  private toFacetBuckets(
+    payload: SearchResponseBody,
+    aggregationName: string,
+  ): SearchFacetBucket[] {
+    const buckets = payload.aggregations?.[aggregationName]?.buckets ?? [];
+
+    return buckets.map((bucket) => ({
+      value: bucket.key,
+      count: bucket.doc_count,
+    }));
   }
 }

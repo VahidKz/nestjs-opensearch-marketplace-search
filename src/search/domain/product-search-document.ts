@@ -22,6 +22,7 @@ export interface ProductSearchDocument {
   currency: string;
   stockQuantity: number;
   inStock: boolean;
+  isActive: boolean;
   freshnessGrade: string;
   tags: string[];
   allergens: string[];
@@ -55,6 +56,7 @@ export function toProductSearchDocument(
     currency: product.price.currency,
     stockQuantity: product.stockQuantity,
     inStock: product.inStock,
+    isActive: product.isActive,
     freshnessGrade: product.freshnessGrade,
     tags: product.tags,
     allergens: product.allergens,
