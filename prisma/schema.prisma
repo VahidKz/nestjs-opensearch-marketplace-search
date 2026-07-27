@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FreshnessGrade {
+  AMBIENT
+  CHILLED
+  FROZEN
+  FRESH
+}
+
+model Supplier {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  city      String
+  country   String
+  rating    Decimal?  @db.Decimal(3, 2)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([country, city])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id              String         @id @default(cuid())
+  sku             String         @unique
+  name            String
+  description     String
+  supplierId      String
+  categoryId      String
+  priceCents      Int
+  currency        String         @default("EUR")
+  stockQuantity   Int            @default(0)
+  freshnessGrade  FreshnessGrade
+  tags            String[]
+  allergens       String[]
+  deliveryRegions String[]
+  isActive        Boolean        @default(true)
+  indexedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([categoryId, isActive])
+  @@index([supplierId, isActive])
+  @@index([updatedAt])
+}
