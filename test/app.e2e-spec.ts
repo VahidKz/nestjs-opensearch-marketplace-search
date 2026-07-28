@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+  INestApplication,
+  ValidationPipe,
+  VersioningType,
+} from '@nestjs/common';
 import request from 'supertest';
+import type { App } from 'supertest/types';
 import { HealthController } from '../src/health/health.controller';
 import { HealthService } from '../src/health/health.service';
 import { ProductsController } from '../src/catalog/interface/http/products.controller';
@@ -11,7 +16,7 @@ import { SearchProductsUseCase } from '../src/search/application/search-products
 import { AutocompleteProductsUseCase } from '../src/search/application/autocomplete-products.use-case';
 
 describe('Marketplace API (e2e)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
   let healthService: jest.Mocked<HealthService>;
   let getProductUseCase: jest.Mocked<GetProductUseCase>;
   let searchProductsUseCase: jest.Mocked<SearchProductsUseCase>;
@@ -81,7 +86,7 @@ describe('Marketplace API (e2e)', () => {
       .get('/health/live')
       .expect(200)
       .expect(({ body }) => {
-        expect(body.status).toBe('ok');
+        expect((body as { status: string }).status).toBe('ok');
       });
   });
 
@@ -100,7 +105,7 @@ describe('Marketplace API (e2e)', () => {
       .get('/v1/products/product-1')
       .expect(200)
       .expect(({ body }) => {
-        expect(body.sku).toBe('NF-TOM-5KG');
+        expect((body as { sku: string }).sku).toBe('NF-TOM-5KG');
       });
   });
 
@@ -124,7 +129,7 @@ describe('Marketplace API (e2e)', () => {
       })
       .expect(200)
       .expect(() => {
-        expect(searchProductsUseCase.execute).toHaveBeenCalledWith(
+        expect(searchProductsUseCase.execute.mock.calls[0]?.[0]).toEqual(
           expect.objectContaining({
             q: 'tomato',
             category: 'produce',

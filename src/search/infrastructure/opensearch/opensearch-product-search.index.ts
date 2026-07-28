@@ -37,7 +37,10 @@ interface SearchResponseBody {
       highlight?: Record<string, string[]>;
     }>;
   };
-  aggregations?: Record<string, { buckets?: Array<{ key: string; doc_count: number }> }>;
+  aggregations?: Record<
+    string,
+    { buckets?: Array<{ key: string; doc_count: number }> }
+  >;
 }
 
 @Injectable()
@@ -69,8 +72,10 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
       toProductSearchDocument(product),
     ]);
 
-    const response = await this.client.bulk({ refresh: false, body });
-    const payload = response as unknown as { body?: BulkResponseBody } & BulkResponseBody;
+    const response: unknown = await this.client.bulk({ refresh: false, body });
+    const payload = response as {
+      body?: BulkResponseBody;
+    } & BulkResponseBody;
     const bodyPayload = payload.body ?? payload;
 
     if (bodyPayload.errors) {
@@ -79,7 +84,9 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
         .filter((item) => item.error)
         .map((item) => item.error);
 
-      throw new Error(`OpenSearch bulk index failed: ${JSON.stringify(errors)}`);
+      throw new Error(
+        `OpenSearch bulk index failed: ${JSON.stringify(errors)}`,
+      );
     }
   }
 
@@ -93,10 +100,12 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
     );
   }
 
-  async searchProducts(query: ProductSearchQuery): Promise<ProductSearchResults> {
-    const response = await this.client.search({
+  async searchProducts(
+    query: ProductSearchQuery,
+  ): Promise<ProductSearchResults> {
+    const response: unknown = await this.client.search({
       index: this.aliasName,
-      body: buildProductSearchRequest(query) as any,
+      body: buildProductSearchRequest(query) as never,
     });
     const payload = this.extractSearchPayload(response);
 
@@ -118,9 +127,9 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
   }
 
   async autocomplete(query: ProductAutocompleteQuery): Promise<string[]> {
-    const response = await this.client.search({
+    const response: unknown = await this.client.search({
       index: this.aliasName,
-      body: buildAutocompleteRequest(query.q, query.limit) as any,
+      body: buildAutocompleteRequest(query.q, query.limit) as never,
     });
     const payload = this.extractSearchPayload(response);
     const suggestions = payload.hits.hits.map((hit) => hit._source.name);
@@ -142,7 +151,7 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
     try {
       await this.client.indices.create({
         index: this.concreteIndexName,
-        body: productIndexDefinition as any,
+        body: productIndexDefinition as never,
       });
     } catch (error) {
       if (!this.isAlreadyExistsError(error)) {
@@ -165,7 +174,8 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
   }
 
   private isAlreadyExistsError(error: unknown) {
-    const responseBody = (error as { body?: { error?: { type?: string } } }).body;
+    const responseBody = (error as { body?: { error?: { type?: string } } })
+      .body;
     const errorType = responseBody?.error?.type;
 
     return (
@@ -175,7 +185,9 @@ export class OpenSearchProductSearchIndex implements ProductSearchIndex {
   }
 
   private extractSearchPayload(response: unknown): SearchResponseBody {
-    const payload = response as { body?: SearchResponseBody } & SearchResponseBody;
+    const payload = response as {
+      body?: SearchResponseBody;
+    } & SearchResponseBody;
 
     return payload.body ?? payload;
   }

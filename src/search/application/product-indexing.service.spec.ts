@@ -1,6 +1,6 @@
-import { ProductCatalogRepository } from '../../catalog/application/ports/product-catalog.repository';
-import { Product } from '../../catalog/domain/product.entity';
-import { ProductSearchIndex } from './ports/product-search-index';
+import type { ProductCatalogRepository } from '../../catalog/application/ports/product-catalog.repository';
+import type { Product } from '../../catalog/domain/product.entity';
+import type { ProductSearchIndex } from './ports/product-search-index';
 import { ProductIndexingService } from './product-indexing.service';
 
 const product: Product = {
@@ -68,11 +68,13 @@ describe('ProductIndexingService', () => {
       service.indexProducts(['product-1', 'deleted-product']),
     ).resolves.toEqual({ indexed: 1 });
 
-    expect(searchIndex.ensureIndex).toHaveBeenCalledTimes(1);
-    expect(searchIndex.indexMany).toHaveBeenCalledWith([product]);
-    expect(catalogRepository.markIndexed).toHaveBeenCalledWith(
-      ['product-1'],
-      expect.any(Date),
+    expect(searchIndex.ensureIndex.mock.calls).toHaveLength(1);
+    expect(searchIndex.indexMany.mock.calls).toEqual([[[product]]]);
+    expect(catalogRepository.markIndexed.mock.calls[0]?.[0]).toEqual([
+      'product-1',
+    ]);
+    expect(catalogRepository.markIndexed.mock.calls[0]?.[1]).toBeInstanceOf(
+      Date,
     );
   });
 
@@ -83,11 +85,11 @@ describe('ProductIndexingService', () => {
 
     await expect(service.reindexAll(1)).resolves.toEqual({ indexed: 1 });
 
-    expect(catalogRepository.findManyForIndex).toHaveBeenNthCalledWith(1, {
+    expect(catalogRepository.findManyForIndex.mock.calls[0]?.[0]).toEqual({
       take: 1,
       afterId: undefined,
     });
-    expect(catalogRepository.findManyForIndex).toHaveBeenNthCalledWith(2, {
+    expect(catalogRepository.findManyForIndex.mock.calls[1]?.[0]).toEqual({
       take: 1,
       afterId: 'product-1',
     });

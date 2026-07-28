@@ -18,7 +18,9 @@ export class ProductIndexingService {
   async indexProducts(productIds: string[]) {
     const products = (
       await Promise.all(
-        productIds.map((productId) => this.catalogRepository.findById(productId)),
+        productIds.map((productId) =>
+          this.catalogRepository.findById(productId),
+        ),
       )
     ).filter((product) => product !== null);
 

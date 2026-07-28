@@ -24,7 +24,9 @@ import { SearchController } from './interface/http/search.controller';
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        connection: redisConnectionFromUrl(config.getOrThrow<string>('REDIS_URL')),
+        connection: redisConnectionFromUrl(
+          config.getOrThrow<string>('REDIS_URL'),
+        ),
       }),
     }),
     BullModule.registerQueue({

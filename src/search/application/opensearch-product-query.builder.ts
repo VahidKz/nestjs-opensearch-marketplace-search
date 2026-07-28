@@ -1,7 +1,4 @@
-import {
-  ProductSearchQuery,
-  ProductSearchSort,
-} from './product-search.query';
+import { ProductSearchQuery, ProductSearchSort } from './product-search.query';
 
 export function buildProductSearchRequest(query: ProductSearchQuery) {
   const filter: Record<string, unknown>[] = [{ term: { isActive: true } }];

@@ -50,7 +50,8 @@ async function main() {
       {
         sku: 'NF-TOM-5KG',
         name: 'Vine tomatoes',
-        description: 'Restaurant crate of bright vine tomatoes for salads and sauces.',
+        description:
+          'Restaurant crate of bright vine tomatoes for salads and sauces.',
         supplierId: nordicFarms.id,
         categoryId: produce.id,
         priceCents: 1890,
@@ -89,7 +90,8 @@ async function main() {
       {
         sku: 'AD-EGG-FR-180',
         name: 'Free range eggs',
-        description: 'Tray pack of 180 free range eggs for bakery and brunch menus.',
+        description:
+          'Tray pack of 180 free range eggs for bakery and brunch menus.',
         supplierId: alpineDairy.id,
         categoryId: dairy.id,
         priceCents: 4490,
@@ -102,7 +104,8 @@ async function main() {
       {
         sku: 'MP-OLIVE-EVOO-5',
         name: 'Extra virgin olive oil',
-        description: 'Five liter tin of cold pressed olive oil for dressings and finishing.',
+        description:
+          'Five liter tin of cold pressed olive oil for dressings and finishing.',
         supplierId: medPantry.id,
         categoryId: pantry.id,
         priceCents: 5790,

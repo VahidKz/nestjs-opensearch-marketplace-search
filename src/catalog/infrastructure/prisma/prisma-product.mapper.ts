@@ -1,9 +1,6 @@
 import { FreshnessGrade, Prisma } from '@prisma/client';
 import { moneyFromCents } from '../../domain/money';
-import {
-  Product,
-  ProductFreshnessGrade,
-} from '../../domain/product.entity';
+import { Product, ProductFreshnessGrade } from '../../domain/product.entity';
 
 export type ProductWithRelations = Prisma.ProductGetPayload<{
   include: {
